@@ -13,6 +13,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CommonResponse<?>> handleValidation(MethodArgumentNotValidException e) {
+
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .findFirst()
@@ -20,6 +21,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .badRequest()
-                .body(CommonResponse.fail(ErrorCode.INVALID_INPUT.getCode(), message));
+                .body(CommonResponse.fail(ErrorCode.AUTH_TOKEN_INVALID.getCode(), message));
     }
 }

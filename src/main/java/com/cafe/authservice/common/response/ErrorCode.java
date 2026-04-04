@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
-    INVALID_INPUT("C001", "잘못된 입력값입니다.");
+    AUTH_TOKEN_INVALID("A001", "유효하지 않은 토큰입니다."),
+    AUTH_ACCESS_DENIED("A002", "권한이 없습니다.");
 
     private final String code;
     private final String message;

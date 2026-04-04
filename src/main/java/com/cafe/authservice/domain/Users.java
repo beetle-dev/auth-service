@@ -1,11 +1,16 @@
 package com.cafe.authservice.domain;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Getter
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
 public class Users extends BaseEntity {
 
     @Id

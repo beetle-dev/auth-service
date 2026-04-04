@@ -2,8 +2,10 @@ package com.cafe.authservice.common.response;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
+@Builder
 @RequiredArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CommonResponse<T> {
