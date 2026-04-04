@@ -11,4 +11,5 @@ public class JwtClaims {
     private UUID uuid;
     private String name;
     private String role;
+    private String jti;
 }

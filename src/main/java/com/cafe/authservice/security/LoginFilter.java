@@ -2,13 +2,15 @@ package com.cafe.authservice.security;
 
 import com.cafe.authservice.common.exception.CustomException;
 import com.cafe.authservice.common.response.ErrorCode;
-import com.cafe.authservice.domain.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -16,10 +18,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
+
+    @Value("${spring.jwt.refresh_expiration}")
+    private Long refreshExpiration;
 
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
@@ -40,7 +44,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
 
-        UUID uuid = userDetails.getUuid();
+        String uuid = String.valueOf(userDetails.getUuid());
         String name = userDetails.getName();
         String role = userDetails.getAuthorities()
                 .stream()
@@ -49,11 +53,21 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 .orElseThrow(() -> new CustomException(ErrorCode.AUTH_ACCESS_DENIED));
 
         String accessToken = jwtTokenProvider.createAccessToken(uuid, name, role);
+        String refreshToken = jwtTokenProvider.createRefreshToken(uuid);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")    // todo msa 구조에서 되나?
+                .maxAge(refreshExpiration / 1000)
+                .path("/")
+                .build();
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json; charset=UTF-8");
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        objectMapper.writeValue(response.getWriter(), "Bearer " + accessToken); // todo refresh token 도 추가
+        objectMapper.writeValue(response.getWriter(), "Bearer " + accessToken);
 
     }
 }
