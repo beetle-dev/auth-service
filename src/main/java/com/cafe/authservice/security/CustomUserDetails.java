@@ -1,6 +1,7 @@
 package com.cafe.authservice.security;
 
 import com.cafe.authservice.domain.Users;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+@Getter
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
