@@ -3,6 +3,7 @@ package com.cafe.authservice.service;
 import com.cafe.authservice.common.exception.CustomException;
 import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.common.response.PageResponse;
+import com.cafe.authservice.domain.Role;
 import com.cafe.authservice.domain.Users;
 import com.cafe.authservice.dto.UserReqDto;
 import com.cafe.authservice.dto.UserResDto;
@@ -19,6 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.cafe.authservice.common.response.ErrorCode.AUTH_ACCESS_DENIED;
+import static com.cafe.authservice.common.response.ErrorCode.NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -56,5 +60,18 @@ public class AuthService {
 
         Page<UserResDto> result = users.map(UserResDto::from);
         return PageResponse.of(result);
+    }
+
+    @Transactional
+    public void modifyUser(UserReqDto reqDto, Users currentUser) {
+
+        if (currentUser.getRole() != Role.ADMIN && currentUser.getUuid() != reqDto.getUuid()){
+            throw new CustomException(AUTH_ACCESS_DENIED);
+        }
+
+        Users users = usersRepository.findByUuid(reqDto.getUuid())
+                .orElseThrow(() -> new CustomException(NOT_FOUND));
+
+        users.modified(reqDto, passwordEncoder);
     }
 }

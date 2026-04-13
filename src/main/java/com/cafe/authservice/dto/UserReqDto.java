@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Getter
 public class UserReqDto {
 
@@ -18,4 +20,6 @@ public class UserReqDto {
     private String name;
 
     private Role role;
+
+    private UUID uuid;
 }

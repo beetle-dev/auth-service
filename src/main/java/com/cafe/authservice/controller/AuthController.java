@@ -64,7 +64,7 @@ public class AuthController {
     }
 
     @PostMapping("/user")
-    public ResponseEntity<CommonResponse<?>> register(@RequestBody UserReqDto newUser) {
+    public ResponseEntity<CommonResponse<?>> register(@RequestBody UserReqDto newUser) { // todo 클라이언트로부터 받을 수 잇는 형태는?
 
         authService.register(newUser);
 
@@ -75,5 +75,14 @@ public class AuthController {
     public ResponseEntity<CommonResponse<?>> getUsers(@ModelAttribute UsersSearchReqDto reqDto) {
 
         return ResponseEntity.ok(CommonResponse.ok(authService.getUsers(reqDto)));
+    }
+
+    @PatchMapping("/users/{id}")
+    public ResponseEntity<CommonResponse<?>> modifyUser(@RequestBody UserReqDto reqDto,
+                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        authService.modifyUser(reqDto, userDetails.getUser());
+
+        return ResponseEntity.ok(CommonResponse.ok());
     }
 }
