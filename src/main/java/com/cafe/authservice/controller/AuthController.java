@@ -1,15 +1,18 @@
 package com.cafe.authservice.controller;
 
 import com.cafe.authservice.common.response.CommonResponse;
+import com.cafe.authservice.common.response.PageResponse;
 import com.cafe.authservice.domain.Users;
 import com.cafe.authservice.dto.UserReqDto;
 import com.cafe.authservice.dto.UserResDto;
+import com.cafe.authservice.dto.UsersSearchReqDto;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
 import com.cafe.authservice.security.userdetails.CustomUserDetails;
 import com.cafe.authservice.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -54,17 +57,23 @@ public class AuthController {
         return ResponseEntity.ok(CommonResponse.ok());
     }
 
-    @GetMapping("me")
+    @GetMapping("/me")
     public ResponseEntity<CommonResponse<?>> getUserInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
 
         return ResponseEntity.ok(CommonResponse.ok(UserResDto.from(userDetails.getUser())));
     }
 
-    @PostMapping("user")
+    @PostMapping("/user")
     public ResponseEntity<CommonResponse<?>> register(@RequestBody UserReqDto newUser) {
 
         authService.register(newUser);
 
         return ResponseEntity.ok(CommonResponse.ok());
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<CommonResponse<?>> getUsers(@ModelAttribute UsersSearchReqDto reqDto) {
+
+        return ResponseEntity.ok(CommonResponse.ok(authService.getUsers(reqDto)));
     }
 }
