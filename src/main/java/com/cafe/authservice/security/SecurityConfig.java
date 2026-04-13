@@ -5,9 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -18,9 +22,13 @@ public class SecurityConfig {
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
+    private final AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        LoginFilter loginFilter = new LoginFilter(jwtTokenProvider, objectMapper);
+        loginFilter.setAuthenticationManager(authenticationManager());
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -35,8 +43,18 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
 
                 .addFilterBefore(new JwtFilter(customAuthenticationFailureHandler, jwtTokenProvider), LoginFilter.class)
-                .addFilterAt(new LoginFilter(jwtTokenProvider, objectMapper), UsernamePasswordAuthenticationFilter.class); // todo loginFilter가 bean이 아니니까 jwttokenprovider를 저렇게 주입해야하는건가?
+                .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

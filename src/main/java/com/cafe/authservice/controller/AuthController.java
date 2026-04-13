@@ -2,9 +2,11 @@ package com.cafe.authservice.controller;
 
 import com.cafe.authservice.common.response.CommonResponse;
 import com.cafe.authservice.domain.Users;
+import com.cafe.authservice.dto.UserReqDto;
 import com.cafe.authservice.dto.UserResDto;
 import com.cafe.authservice.security.CustomUserDetails;
 import com.cafe.authservice.security.JwtTokenProvider;
+import com.cafe.authservice.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +15,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -24,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
 
     @PostMapping("/logout")
     public ResponseEntity<CommonResponse<?>> logout(HttpServletRequest request,
@@ -58,5 +58,13 @@ public class AuthController {
     public ResponseEntity<CommonResponse<?>> getUserInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
 
         return ResponseEntity.ok(CommonResponse.ok(UserResDto.from(userDetails.getUser())));
+    }
+
+    @PostMapping("user")
+    public ResponseEntity<CommonResponse<?>> register(@RequestBody UserReqDto newUser) {
+
+        authService.register(newUser);
+
+        return ResponseEntity.ok(CommonResponse.ok());
     }
 }

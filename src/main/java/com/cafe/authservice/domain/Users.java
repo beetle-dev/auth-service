@@ -2,6 +2,7 @@ package com.cafe.authservice.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -36,7 +37,7 @@ public class Users extends BaseEntity {
     @Column(nullable = false)
     private boolean isActive;
 
-    private LocalDateTime lastLoginAt;
+    private LocalDateTime lastLoginAt; // todo 자동처리
 
     @PrePersist
     protected void prePersist() {
