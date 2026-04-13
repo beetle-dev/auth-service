@@ -1,4 +1,4 @@
-package com.cafe.authservice.security;
+package com.cafe.authservice.security.jwt;
 
 import lombok.Builder;
 import lombok.Getter;

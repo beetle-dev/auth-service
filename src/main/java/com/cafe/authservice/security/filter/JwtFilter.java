@@ -1,12 +1,15 @@
-package com.cafe.authservice.security;
+package com.cafe.authservice.security.filter;
 
 import com.cafe.authservice.common.exception.CustomAuthenticationFailureHandler;
 import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.domain.Role;
 import com.cafe.authservice.domain.Users;
+import com.cafe.authservice.security.jwt.JwtClaims;
+import com.cafe.authservice.security.jwt.JwtTokenProvider;
+import com.cafe.authservice.security.jwt.PermitAuthPath;
+import com.cafe.authservice.security.userdetails.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +48,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             failureHandler.onAuthenticationFailure(request, response, new BadCredentialsException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
-            return ;
+            return;
         }
 
         String accessToken = authorization.split(" ")[1];
@@ -70,8 +73,10 @@ public class JwtFilter extends OncePerRequestFilter {
             String role = claims.get("role", String.class);
 
             jwtTokenProvider.reissueAccessToken(request, response, name, role);
+            return;
         } catch (Exception e) {
             failureHandler.onAuthenticationFailure(request, response, new BadCredentialsException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
+            return;
         }
 
         filterChain.doFilter(request, response);

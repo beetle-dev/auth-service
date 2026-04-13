@@ -1,4 +1,4 @@
-package com.cafe.authservice.security;
+package com.cafe.authservice.security.token;
 
 import lombok.AllArgsConstructor;
 import org.springframework.data.annotation.Id;

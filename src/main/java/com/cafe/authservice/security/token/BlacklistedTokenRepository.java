@@ -1,4 +1,4 @@
-package com.cafe.authservice.security;
+package com.cafe.authservice.security.token;
 
 import org.springframework.data.repository.CrudRepository;
 

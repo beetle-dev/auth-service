@@ -1,4 +1,4 @@
-package com.cafe.authservice.security;
+package com.cafe.authservice.security.userdetails;
 
 import com.cafe.authservice.common.exception.CustomException;
 import com.cafe.authservice.common.response.ErrorCode;

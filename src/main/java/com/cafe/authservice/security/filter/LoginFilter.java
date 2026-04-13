@@ -1,7 +1,9 @@
-package com.cafe.authservice.security;
+package com.cafe.authservice.security.filter;
 
 import com.cafe.authservice.common.exception.CustomException;
 import com.cafe.authservice.common.response.ErrorCode;
+import com.cafe.authservice.security.jwt.JwtTokenProvider;
+import com.cafe.authservice.security.userdetails.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,7 +36,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String username = obtainUsername(request);
         String password = obtainPassword(request);
 
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password, null); // todo authorities null 추가해야하지 않나?
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password, null);
 
         return this.getAuthenticationManager().authenticate(token);
     }
@@ -52,7 +54,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 .findFirst()
                 .orElseThrow(() -> new CustomException(ErrorCode.AUTH_ACCESS_DENIED));
 
-        String accessToken = jwtTokenProvider.createAccessToken(uuid, name, role); // todo xss란?
+        String accessToken = jwtTokenProvider.createAccessToken(uuid, name, role);
         String refreshToken = jwtTokenProvider.createRefreshToken(uuid);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
@@ -68,6 +70,5 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         objectMapper.writeValue(response.getWriter(), "Bearer " + accessToken);
-
     }
 }

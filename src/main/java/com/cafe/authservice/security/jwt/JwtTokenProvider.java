@@ -1,8 +1,12 @@
-package com.cafe.authservice.security;
+package com.cafe.authservice.security.jwt;
 
 import com.cafe.authservice.common.exception.CustomAuthenticationFailureHandler;
 import com.cafe.authservice.common.exception.CustomException;
 import com.cafe.authservice.common.response.ErrorCode;
+import com.cafe.authservice.security.token.BlacklistedToken;
+import com.cafe.authservice.security.token.BlacklistedTokenRepository;
+import com.cafe.authservice.security.token.RefreshToken;
+import com.cafe.authservice.security.token.RefreshTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -11,8 +15,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
@@ -35,9 +37,9 @@ public class JwtTokenProvider {
     private final ObjectMapper objectMapper;
     private final CustomAuthenticationFailureHandler failureHandler;
 
-    public JwtTokenProvider(@Value("${spring.jwt.secretkey}")String secretKey,
-                            @Value("${spring.jwt.access_expiration}")Long accessExpiration,
-                            @Value("${spring.jwt.refresh_expiration}")Long refreshExpiration,
+    public JwtTokenProvider(@Value("${spring.jwt.secretkey}") String secretKey,
+                            @Value("${spring.jwt.access_expiration}") Long accessExpiration,
+                            @Value("${spring.jwt.refresh_expiration}") Long refreshExpiration,
                             RefreshTokenRepository refreshTokenRepository,
                             BlacklistedTokenRepository blacklistedTokenRepository,
                             ObjectMapper objectMapper,
@@ -97,7 +99,7 @@ public class JwtTokenProvider {
 
         var payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(refreshToken).getPayload();
 
-        boolean exists = refreshTokenRepository.findById(String.valueOf(payload.get("sub", UUID.class))).isPresent();
+        boolean exists = refreshTokenRepository.findById(payload.getSubject()).isPresent();
 
         if (!exists) {
             failureHandler.onAuthenticationFailure(request, response,
@@ -106,8 +108,8 @@ public class JwtTokenProvider {
         }
 
         return JwtClaims.builder()
-                .uuid(payload.get("sub", UUID.class))
-                .jti(payload.get("jti", String.class))
+                .uuid(UUID.fromString(payload.getSubject()))
+                .jti(payload.getId())
                 .build();
     }
 
@@ -116,7 +118,7 @@ public class JwtTokenProvider {
         refreshTokenRepository.findById(uuid)
                 .ifPresent(token -> refreshTokenRepository.deleteById(uuid));
 
-        String jti = String.valueOf(UUID.randomUUID());
+        String jti = UUID.randomUUID().toString();
 
         refreshTokenRepository.save(new RefreshToken(uuid, jti));
 
@@ -134,7 +136,6 @@ public class JwtTokenProvider {
         String refreshToken = getRefreshToken(request);
 
         try {
-
             JwtClaims jwtClaims = validateRefreshToken(request, response, refreshToken);
 
             String accessToken = createAccessToken(String.valueOf(jwtClaims.getUuid()), name, role);
@@ -150,6 +151,12 @@ public class JwtTokenProvider {
         }
     }
 
+    public void deleteRefreshToken(String uuid) {
+
+        refreshTokenRepository.findById(uuid)
+                .ifPresent(refreshTokenRepository::delete);
+    }
+
     private String getRefreshToken(HttpServletRequest request) {
 
         if (request.getCookies() == null) return null;
@@ -159,11 +166,5 @@ public class JwtTokenProvider {
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElse(null);
-    }
-
-    public void deleteRefreshToken(String uuid) {
-
-        refreshTokenRepository.findById(uuid)
-                .ifPresent(refreshTokenRepository::delete);
     }
 }

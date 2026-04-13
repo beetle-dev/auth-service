@@ -1,6 +1,10 @@
-package com.cafe.authservice.security;
+package com.cafe.authservice.security.config;
 
 import com.cafe.authservice.common.exception.CustomAuthenticationFailureHandler;
+import com.cafe.authservice.security.filter.JwtFilter;
+import com.cafe.authservice.security.filter.LoginFilter;
+import com.cafe.authservice.security.jwt.JwtTokenProvider;
+import com.cafe.authservice.security.jwt.PermitAuthPath;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
