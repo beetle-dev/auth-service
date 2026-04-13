@@ -45,7 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             failureHandler.onAuthenticationFailure(request, response, new BadCredentialsException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
-            // todo return; 필요?
+            return ;
         }
 
         String accessToken = authorization.split(" ")[1];

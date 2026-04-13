@@ -1,6 +1,7 @@
 package com.cafe.authservice.security;
 
 import com.cafe.authservice.common.exception.CustomAuthenticationFailureHandler;
+import com.cafe.authservice.common.exception.CustomException;
 import com.cafe.authservice.common.response.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -30,6 +31,7 @@ public class JwtTokenProvider {
     private final Long accessExpiration;
     private final Long refreshExpiration;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
     private final ObjectMapper objectMapper;
     private final CustomAuthenticationFailureHandler failureHandler;
 
@@ -37,12 +39,14 @@ public class JwtTokenProvider {
                             @Value("${spring.jwt.access_expiration}")Long accessExpiration,
                             @Value("${spring.jwt.refresh_expiration}")Long refreshExpiration,
                             RefreshTokenRepository refreshTokenRepository,
+                            BlacklistedTokenRepository blacklistedTokenRepository,
                             ObjectMapper objectMapper,
                             CustomAuthenticationFailureHandler failureHandler) {
         this.secretKey = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
         this.accessExpiration = accessExpiration;
         this.refreshExpiration = refreshExpiration;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.blacklistedTokenRepository = blacklistedTokenRepository;
         this.objectMapper = objectMapper;
         this.failureHandler = failureHandler;
     }
@@ -51,6 +55,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(uuid)
+                .id(UUID.randomUUID().toString())
                 .claim("name", name)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
@@ -63,11 +68,29 @@ public class JwtTokenProvider {
 
         var payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload();
 
+        String jti = payload.getId();
+
+        if (blacklistedTokenRepository.existsById(jti)) {
+            throw new CustomException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
+
         return JwtClaims.builder()
-                .uuid(payload.get("sub", UUID.class))
+                .uuid(UUID.fromString(payload.getSubject()))
                 .name(payload.get("name", String.class))
-                .name(payload.get("roles", String.class))
+                .role(payload.get("role", String.class))
+                .jti(jti)
                 .build();
+    }
+
+    public void blacklistAccessToken(String accessToken) {
+
+        var payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload();
+
+        long ttlSeconds = (payload.getExpiration().getTime() - System.currentTimeMillis()) / 1000;
+
+        if (ttlSeconds > 0) {
+            blacklistedTokenRepository.save(new BlacklistedToken(payload.getId(), ttlSeconds));
+        }
     }
 
     public JwtClaims validateRefreshToken(HttpServletRequest request, HttpServletResponse response, String refreshToken) throws ServletException, IOException {
@@ -89,7 +112,21 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(String uuid) {
-        return null;
+
+        refreshTokenRepository.findById(uuid)
+                .ifPresent(token -> refreshTokenRepository.deleteById(uuid));
+
+        String jti = String.valueOf(UUID.randomUUID());
+
+        refreshTokenRepository.save(new RefreshToken(uuid, jti));
+
+        return Jwts.builder()
+                .subject(uuid)
+                .id(jti)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date((System.currentTimeMillis() + refreshExpiration)))
+                .signWith(secretKey)
+                .compact();
     }
 
     public void reissueAccessToken(HttpServletRequest request, HttpServletResponse response, String name, String role) throws IOException, ServletException {
@@ -118,14 +155,15 @@ public class JwtTokenProvider {
         if (request.getCookies() == null) return null;
 
         return Arrays.stream(request.getCookies())
+                .filter(cookie -> cookie.getName().equals("refreshToken"))
                 .map(Cookie::getValue)
-                .filter(value -> value.equals("refreshToken"))
                 .findFirst()
                 .orElse(null);
     }
 
-    public void deleteRefreshToken(UUID uuid) {
+    public void deleteRefreshToken(String uuid) {
 
-
+        refreshTokenRepository.findById(uuid)
+                .ifPresent(refreshTokenRepository::delete);
     }
 }
