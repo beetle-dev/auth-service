@@ -89,21 +89,7 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(String uuid) {
-
-        refreshTokenRepository.findById(uuid)
-                .ifPresent(token -> refreshTokenRepository.deleteById(uuid));
-
-        String jti = String.valueOf(UUID.randomUUID());
-
-        refreshTokenRepository.save(new RefreshToken(uuid, jti));
-
-        return Jwts.builder()
-                .subject(uuid)
-                .id(jti)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date((System.currentTimeMillis() + refreshExpiration)))
-                .signWith(secretKey)
-                .compact();
+        return null;
     }
 
     public void reissueAccessToken(HttpServletRequest request, HttpServletResponse response, String name, String role) throws IOException, ServletException {
@@ -136,5 +122,10 @@ public class JwtTokenProvider {
                 .filter(value -> value.equals("refreshToken"))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public void deleteRefreshToken(UUID uuid) {
+
+
     }
 }

@@ -52,7 +52,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 .findFirst()
                 .orElseThrow(() -> new CustomException(ErrorCode.AUTH_ACCESS_DENIED));
 
-        String accessToken = jwtTokenProvider.createAccessToken(uuid, name, role);
+        String accessToken = jwtTokenProvider.createAccessToken(uuid, name, role); // todo xss란?
         String refreshToken = jwtTokenProvider.createRefreshToken(uuid);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
