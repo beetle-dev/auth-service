@@ -20,9 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
-import static com.cafe.authservice.common.response.ErrorCode.AUTH_ACCESS_DENIED;
-import static com.cafe.authservice.common.response.ErrorCode.NOT_FOUND;
+import static com.cafe.authservice.common.response.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -63,15 +63,24 @@ public class AuthService {
     }
 
     @Transactional
-    public void modifyUser(UserReqDto reqDto, Users currentUser) {
+    public void modifyUser(UUID uuid, UserReqDto reqDto, Users currentUser) {
 
-        if (currentUser.getRole() != Role.ADMIN && currentUser.getUuid() != reqDto.getUuid()){
+        if (currentUser.getRole() != Role.ADMIN && !currentUser.getUuid().equals(uuid)){
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
-        Users users = usersRepository.findByUuid(reqDto.getUuid())
+        Users users = usersRepository.findByUuid(uuid)
                 .orElseThrow(() -> new CustomException(NOT_FOUND));
 
+        usersRepository.findByEmail(reqDto.getEmail())
+                        .ifPresent(users1 -> {throw new CustomException(DUPLICATE_EMAIL);});
+
         users.modified(reqDto, passwordEncoder);
+    }
+
+    public Users getUserInfo(UUID uuid) {
+
+        return usersRepository.findByUuid(uuid)
+                .orElseThrow(() -> new CustomException(NOT_FOUND));
     }
 }

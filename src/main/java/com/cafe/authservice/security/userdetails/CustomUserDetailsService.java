@@ -20,6 +20,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return usersRepository.findByEmail(email)
                 .map(CustomUserDetails::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_TOKEN_INVALID));
+                .orElseThrow(() -> new UsernameNotFoundException(email));
     }
 }

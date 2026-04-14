@@ -3,8 +3,10 @@ package com.cafe.authservice.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @Builder
 @RequiredArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -30,5 +32,9 @@ public class CommonResponse<T> {
 
     public static <T> CommonResponse<T> fail(ErrorCode errorCode) {
         return new CommonResponse<>(errorCode.getCode(), errorCode.getMessage(), null);
+    }
+
+    public static <T> CommonResponse<String> reissueAccessToken(String accessToken) {
+        return new CommonResponse<>("REISSUE_ACCESS_TOJKEN",null, accessToken);
     }
 }

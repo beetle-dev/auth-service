@@ -2,6 +2,8 @@ package com.cafe.authservice.security.jwt;
 
 import com.cafe.authservice.common.exception.CustomAuthenticationFailureHandler;
 import com.cafe.authservice.common.exception.CustomException;
+import com.cafe.authservice.common.exception.JwtAuthenticationException;
+import com.cafe.authservice.common.response.CommonResponse;
 import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.security.token.BlacklistedToken;
 import com.cafe.authservice.security.token.BlacklistedTokenRepository;
@@ -137,24 +139,22 @@ public class JwtTokenProvider {
 
         try {
             JwtClaims jwtClaims = validateRefreshToken(request, response, refreshToken);
-
+            if (jwtClaims == null) return ;
             String accessToken = createAccessToken(String.valueOf(jwtClaims.getUuid()), name, role);
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json; charset=UTF-8");
 
-            objectMapper.writeValue(response.getWriter(), "Bearer " + accessToken);
+            objectMapper.writeValue(response.getWriter(), CommonResponse.reissueAccessToken(accessToken));
         } catch (ExpiredJwtException e) {
-            failureHandler.onAuthenticationFailure(request, response, new BadCredentialsException(ErrorCode.AUTH_TOKEN_EXPIRE.getMessage()));
+            failureHandler.onAuthenticationFailure(request, response, new JwtAuthenticationException(ErrorCode.AUTH_TOKEN_EXPIRE.getMessage()));
         } catch (Exception e) {
-            failureHandler.onAuthenticationFailure(request, response, new BadCredentialsException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
+            failureHandler.onAuthenticationFailure(request, response, new JwtAuthenticationException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
         }
     }
 
     public void deleteRefreshToken(String uuid) {
-
-        refreshTokenRepository.findById(uuid)
-                .ifPresent(refreshTokenRepository::delete);
+        refreshTokenRepository.deleteById(uuid);
     }
 
     private String getRefreshToken(HttpServletRequest request) {

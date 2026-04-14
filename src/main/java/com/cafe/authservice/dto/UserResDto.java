@@ -3,9 +3,11 @@ package com.cafe.authservice.dto;
 import com.cafe.authservice.domain.Users;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Builder
 @AllArgsConstructor
 public class UserResDto {

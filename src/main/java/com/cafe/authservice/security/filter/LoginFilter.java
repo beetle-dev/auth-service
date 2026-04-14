@@ -1,7 +1,9 @@
 package com.cafe.authservice.security.filter;
 
 import com.cafe.authservice.common.exception.CustomException;
+import com.cafe.authservice.common.response.CommonResponse;
 import com.cafe.authservice.common.response.ErrorCode;
+import com.cafe.authservice.repository.UsersRepository;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
 import com.cafe.authservice.security.userdetails.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,11 +26,10 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
-    @Value("${spring.jwt.refresh_expiration}")
-    private Long refreshExpiration;
-
+    private final Long refreshExpiration;
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
+    private final UsersRepository usersRepository;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -45,6 +46,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
 
         CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
+
+        usersRepository.findByUuid(userDetails.getUuid())
+                .ifPresent(user -> {
+                    user.updateLastLoginAt();
+                    usersRepository.save(user);
+                });
 
         String uuid = String.valueOf(userDetails.getUuid());
         String name = userDetails.getName();
@@ -69,6 +76,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setContentType("application/json; charset=UTF-8");
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        objectMapper.writeValue(response.getWriter(), "Bearer " + accessToken);
+        objectMapper.writeValue(response.getWriter(), CommonResponse.ok(accessToken));
     }
 }

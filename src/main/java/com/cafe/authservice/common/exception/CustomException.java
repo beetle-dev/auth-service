@@ -1,7 +1,9 @@
 package com.cafe.authservice.common.exception;
 
 import com.cafe.authservice.common.response.ErrorCode;
+import lombok.Getter;
 
+@Getter
 public class CustomException extends RuntimeException{
 
     private final ErrorCode errorCode;
@@ -10,4 +12,5 @@ public class CustomException extends RuntimeException{
         super(errorCode.getMessage());
         this.errorCode = errorCode;
     }
+
 }

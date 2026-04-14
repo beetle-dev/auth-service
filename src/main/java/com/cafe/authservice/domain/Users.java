@@ -39,7 +39,11 @@ public class Users extends BaseEntity {
     @Column(nullable = false)
     private boolean isActive;
 
-    private LocalDateTime lastLoginAt; // todo 자동처리
+    private LocalDateTime lastLoginAt;
+
+    public void updateLastLoginAt() {
+        this.lastLoginAt = LocalDateTime.now();
+    }
 
     @PrePersist
     protected void prePersist() {
@@ -52,6 +56,5 @@ public class Users extends BaseEntity {
         if (StringUtils.hasText(reqDto.getEmail())) this.email = reqDto.getEmail();
         if (StringUtils.hasText(reqDto.getPassword())) this.password = passwordEncoder.encode(reqDto.getPassword());
         if (StringUtils.hasText(reqDto.getName())) this.name = reqDto.getName();
-        if (reqDto.getRole() != null) this.role = reqDto.getRole();
     }
 }

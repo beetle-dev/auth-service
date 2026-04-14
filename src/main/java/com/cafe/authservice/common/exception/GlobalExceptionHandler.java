@@ -21,6 +21,14 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .badRequest()
-                .body(CommonResponse.fail(ErrorCode.AUTH_TOKEN_INVALID.getCode(), message));
+                .body(CommonResponse.fail(ErrorCode.VALIDATION_FAILED.getCode(), message));
+    }
+
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<CommonResponse<?>> handleCustomException(CustomException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(CommonResponse.fail(errorCode));
     }
 }

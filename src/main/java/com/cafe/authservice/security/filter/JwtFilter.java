@@ -1,6 +1,7 @@
 package com.cafe.authservice.security.filter;
 
 import com.cafe.authservice.common.exception.CustomAuthenticationFailureHandler;
+import com.cafe.authservice.common.exception.JwtAuthenticationException;
 import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.domain.Role;
 import com.cafe.authservice.domain.Users;
@@ -15,6 +16,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
@@ -47,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-            failureHandler.onAuthenticationFailure(request, response, new BadCredentialsException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
+            failureHandler.onAuthenticationFailure(request, response, new JwtAuthenticationException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
             return;
         }
 
@@ -75,7 +78,7 @@ public class JwtFilter extends OncePerRequestFilter {
             jwtTokenProvider.reissueAccessToken(request, response, name, role);
             return;
         } catch (Exception e) {
-            failureHandler.onAuthenticationFailure(request, response, new BadCredentialsException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
+            failureHandler.onAuthenticationFailure(request, response, new JwtAuthenticationException(ErrorCode.AUTH_TOKEN_INVALID.getMessage()));
             return;
         }
 

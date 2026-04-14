@@ -5,7 +5,7 @@ import java.util.List;
 public final class PermitAuthPath {
 
     public static final String LOGIN = "/login";
-    public static final String SIGNUP = "/signup";
+    public static final String SIGNUP = "/auth/user";
     public static final String SWAGGER_UI = "/swagger-ui/**";
     public static final String API_DOCS = "/v3/api-docs/**";
     public static final String HEALTH_CHECK = "/actuator/health";

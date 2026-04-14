@@ -11,6 +11,7 @@ import com.cafe.authservice.security.userdetails.CustomUserDetails;
 import com.cafe.authservice.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -60,11 +63,13 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<CommonResponse<?>> getUserInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        return ResponseEntity.ok(CommonResponse.ok(UserResDto.from(userDetails.getUser())));
+        Users user = authService.getUserInfo(userDetails.getUser().getUuid());
+
+        return ResponseEntity.ok(CommonResponse.ok(UserResDto.from(user)));
     }
 
     @PostMapping("/user")
-    public ResponseEntity<CommonResponse<?>> register(@RequestBody UserReqDto newUser) { // todo 클라이언트로부터 받을 수 잇는 형태는?
+    public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserReqDto newUser) { // todo 클라이언트로부터 받을 수 잇는 형태는?
 
         authService.register(newUser);
 
@@ -72,16 +77,17 @@ public class AuthController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<CommonResponse<?>> getUsers(@ModelAttribute UsersSearchReqDto reqDto) {
+    public ResponseEntity<CommonResponse<?>> getUsers(@Valid @ModelAttribute UsersSearchReqDto reqDto) {
 
         return ResponseEntity.ok(CommonResponse.ok(authService.getUsers(reqDto)));
     }
 
-    @PatchMapping("/users/{id}")
-    public ResponseEntity<CommonResponse<?>> modifyUser(@RequestBody UserReqDto reqDto,
+    @PatchMapping("/users/{uuid}")
+    public ResponseEntity<CommonResponse<?>> modifyUser(@PathVariable("uuid") UUID uuid,
+                                                        @Valid @RequestBody UserReqDto reqDto,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        authService.modifyUser(reqDto, userDetails.getUser());
+        authService.modifyUser(uuid, reqDto, userDetails.getUser());
 
         return ResponseEntity.ok(CommonResponse.ok());
     }

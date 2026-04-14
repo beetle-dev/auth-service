@@ -6,7 +6,9 @@ import com.cafe.authservice.dto.UsersSearchReqDto;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
-public class UsersSpecification {
+public final class UsersSpecification {
+
+    private UsersSpecification(){}
 
     public static Specification<Users> search(UsersSearchReqDto dto) {
         return Specification.allOf(
