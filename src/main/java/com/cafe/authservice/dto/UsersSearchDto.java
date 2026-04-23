@@ -9,7 +9,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class UsersSearchReqDto {
+public class UsersSearchDto {
 
     private String email;
     private String name;

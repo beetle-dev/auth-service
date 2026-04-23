@@ -1,11 +1,10 @@
 package com.cafe.authservice.controller;
 
 import com.cafe.authservice.common.response.CommonResponse;
-import com.cafe.authservice.common.response.PageResponse;
 import com.cafe.authservice.domain.Users;
 import com.cafe.authservice.dto.UserReqDto;
 import com.cafe.authservice.dto.UserResDto;
-import com.cafe.authservice.dto.UsersSearchReqDto;
+import com.cafe.authservice.dto.UsersSearchDto;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
 import com.cafe.authservice.security.userdetails.CustomUserDetails;
 import com.cafe.authservice.service.AuthService;
@@ -13,7 +12,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -77,7 +75,7 @@ public class AuthController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<CommonResponse<?>> getUsers(@Valid @ModelAttribute UsersSearchReqDto reqDto) {
+    public ResponseEntity<CommonResponse<?>> getUsers(@Valid @ModelAttribute UsersSearchDto reqDto) {
 
         return ResponseEntity.ok(CommonResponse.ok(authService.getUsers(reqDto)));
     }

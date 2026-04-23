@@ -7,7 +7,7 @@ import com.cafe.authservice.domain.Role;
 import com.cafe.authservice.domain.Users;
 import com.cafe.authservice.dto.UserReqDto;
 import com.cafe.authservice.dto.UserResDto;
-import com.cafe.authservice.dto.UsersSearchReqDto;
+import com.cafe.authservice.dto.UsersSearchDto;
 import com.cafe.authservice.repository.UsersRepository;
 import com.cafe.authservice.repository.UsersSpecification;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 import static com.cafe.authservice.common.response.ErrorCode.*;
@@ -48,7 +47,7 @@ public class AuthService {
         usersRepository.save(user);
     }
 
-    public PageResponse<UserResDto> getUsers(UsersSearchReqDto reqDto) {
+    public PageResponse<UserResDto> getUsers(UsersSearchDto reqDto) {
 
         Sort sort = Sort.by(
                 Sort.Direction.fromString(reqDto.getDirection()),

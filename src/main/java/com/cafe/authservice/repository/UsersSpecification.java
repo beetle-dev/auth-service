@@ -2,7 +2,7 @@ package com.cafe.authservice.repository;
 
 import com.cafe.authservice.domain.Role;
 import com.cafe.authservice.domain.Users;
-import com.cafe.authservice.dto.UsersSearchReqDto;
+import com.cafe.authservice.dto.UsersSearchDto;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -10,7 +10,7 @@ public final class UsersSpecification {
 
     private UsersSpecification(){}
 
-    public static Specification<Users> search(UsersSearchReqDto dto) {
+    public static Specification<Users> search(UsersSearchDto dto) {
         return Specification.allOf(
                 emailContains(dto.getEmail()),
                 nameContains(dto.getName()),
