@@ -48,7 +48,7 @@ public class Users extends BaseEntity {
     @PrePersist
     protected void prePersist() {
         if (this.uuid == null) this.uuid = UUID.randomUUID();
-        if (this.role == null) this.role = Role.STAFF;
+        if (this.role == null) this.role = Role.PENDING;
         this.isActive = true;
     }
 

@@ -31,12 +31,11 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<CommonResponse<?>> logout(HttpServletRequest request,
-                                                    HttpServletResponse response,
-                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                    HttpServletResponse response) {
 
         String authorization = request.getHeader("Authorization");
         String accessToken = authorization.split(" ")[1];
-        jwtTokenProvider.blacklistAccessToken(accessToken);
+        String uuid = jwtTokenProvider.blacklistAccessToken(accessToken);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
@@ -50,18 +49,15 @@ public class AuthController {
         response.setContentType("application/json; charset=UTF-8");
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        String uuid = userDetails.getUuid().toString();
         jwtTokenProvider.deleteRefreshToken(uuid);
-
-        SecurityContextHolder.clearContext();
 
         return ResponseEntity.ok(CommonResponse.ok());
     }
 
     @GetMapping("/me")
-    public ResponseEntity<CommonResponse<?>> getUserInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CommonResponse<?>> getUserInfo(@RequestHeader("X-User-Id") String uuid) {
 
-        Users user = authService.getUserInfo(userDetails.getUser().getUuid());
+        Users user = authService.getUserInfo(UUID.fromString(uuid));
 
         return ResponseEntity.ok(CommonResponse.ok(UserResDto.from(user)));
     }
@@ -83,10 +79,20 @@ public class AuthController {
     @PatchMapping("/users/{uuid}")
     public ResponseEntity<CommonResponse<?>> modifyUser(@PathVariable("uuid") UUID uuid,
                                                         @Valid @RequestBody UserReqDto reqDto,
-                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                        @RequestHeader("X-User-Id") String requesterId,
+                                                        @RequestHeader("X-User-Role") String requesterRole) {
 
-        authService.modifyUser(uuid, reqDto, userDetails.getUser());
+        authService.modifyUser(uuid, reqDto, requesterId, requesterRole);
 
         return ResponseEntity.ok(CommonResponse.ok());
+    }
+
+    @PostMapping("/auth/reissue")
+    public ResponseEntity<?> reissue(HttpServletRequest request,
+                                     HttpServletResponse response) throws Exception { // todo 주석 정리
+        // refreshToken 쿠키 검증 → DB에서 uuid로 name/role 조회 → 새 access token 발급
+        // JwtTokenProvider.reissueAccessToken 로직 활용 또는 분리
+        jwtTokenProvider.reissueAccessToken(request, response, null, null);
+        return null; // response에 직접 write
     }
 }

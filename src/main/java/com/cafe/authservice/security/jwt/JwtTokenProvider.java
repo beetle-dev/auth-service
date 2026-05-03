@@ -86,7 +86,7 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    public void blacklistAccessToken(String accessToken) {
+    public String blacklistAccessToken(String accessToken) {
 
         var payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload();
 
@@ -95,6 +95,8 @@ public class JwtTokenProvider {
         if (ttlSeconds > 0) {
             blacklistedTokenRepository.save(new BlacklistedToken(payload.getId(), ttlSeconds));
         }
+
+        return payload.getSubject();
     }
 
     public JwtClaims validateRefreshToken(HttpServletRequest request, HttpServletResponse response, String refreshToken) throws ServletException, IOException {

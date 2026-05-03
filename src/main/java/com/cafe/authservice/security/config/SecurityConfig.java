@@ -43,7 +43,7 @@ public class SecurityConfig {
         LoginFilter loginFilter = new LoginFilter(refreshExpiration, jwtTokenProvider, objectMapper, usersRepository);
         loginFilter.setAuthenticationManager(authenticationManager());
         loginFilter.setAuthenticationFailureHandler(customAuthenticationFailureHandler);
-
+        // todo auth 검증 제외 >> api-gateway로 이관?
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -61,11 +61,15 @@ public class SecurityConfig {
                 .sessionManagement((session) ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+//                .authorizeHttpRequests((auth) -> auth
+//                        .requestMatchers(PermitAuthPath.permitAuthPaths.toArray(new String[0])).permitAll()
+//                        .anyRequest().authenticated())
+
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(PermitAuthPath.permitAuthPaths.toArray(new String[0])).permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().permitAll())
 
-                .addFilterBefore(new JwtFilter(customAuthenticationFailureHandler, jwtTokenProvider), LoginFilter.class)
+//                .addFilterBefore(new JwtFilter(customAuthenticationFailureHandler, jwtTokenProvider), LoginFilter.class)
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

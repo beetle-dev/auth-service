@@ -62,9 +62,9 @@ public class AuthService {
     }
 
     @Transactional
-    public void modifyUser(UUID uuid, UserReqDto reqDto, Users currentUser) {
+    public void modifyUser(UUID uuid, UserReqDto reqDto, String requesterId, String requesterRole) {
 
-        if (currentUser.getRole() != Role.ADMIN && !currentUser.getUuid().equals(uuid)){
+        if (requesterRole != Role.ADMIN.toString() && requesterId.equals(uuid)){ // todo 로직 확인
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
