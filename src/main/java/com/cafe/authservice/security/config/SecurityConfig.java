@@ -4,10 +4,9 @@ import com.cafe.authservice.common.exception.CustomAuthenticationFailureHandler;
 import com.cafe.authservice.common.response.CommonResponse;
 import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.repository.UsersRepository;
-import com.cafe.authservice.security.filter.JwtFilter;
+import com.cafe.authservice.security.filter.GatewayAuthFilter;
 import com.cafe.authservice.security.filter.LoginFilter;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
-import com.cafe.authservice.security.jwt.PermitAuthPath;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +30,7 @@ public class SecurityConfig {
     @Value("${spring.jwt.refresh_expiration}")
     private Long refreshExpiration;
 
+    private final GatewayAuthFilter gatewayAuthFilter;
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
@@ -49,6 +49,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
+                .sessionManagement((session) ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -58,18 +61,9 @@ public class SecurityConfig {
                         })
                 )
 
-                .sessionManagement((session) ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests((auth) -> auth.anyRequest().permitAll())
 
-//                .authorizeHttpRequests((auth) -> auth
-//                        .requestMatchers(PermitAuthPath.permitAuthPaths.toArray(new String[0])).permitAll()
-//                        .anyRequest().authenticated())
-
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(PermitAuthPath.permitAuthPaths.toArray(new String[0])).permitAll()
-                        .anyRequest().permitAll())
-
-//                .addFilterBefore(new JwtFilter(customAuthenticationFailureHandler, jwtTokenProvider), LoginFilter.class)
+                .addFilterBefore(gatewayAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

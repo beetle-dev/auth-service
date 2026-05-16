@@ -54,20 +54,19 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 });
 
         String uuid = String.valueOf(userDetails.getUuid());
-        String name = userDetails.getName();
         String role = userDetails.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElseThrow(() -> new CustomException(ErrorCode.AUTH_ACCESS_DENIED));
 
-        String accessToken = jwtTokenProvider.createAccessToken(uuid, name, role);
+        String accessToken = jwtTokenProvider.createAccessToken(uuid, role);
         String refreshToken = jwtTokenProvider.createRefreshToken(uuid);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")    // todo msa 구조에서 되나?
+                .secure(false) // todo 운영환경 true로 변경 필요
+                .sameSite("None")
                 .maxAge(refreshExpiration / 1000)
                 .path("/")
                 .build();

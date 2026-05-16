@@ -55,12 +55,11 @@ public class JwtTokenProvider {
         this.failureHandler = failureHandler;
     }
 
-    public String createAccessToken(String uuid, String name, String role) {
+    public String createAccessToken(String uuid,String role) {
 
         return Jwts.builder()
                 .subject(uuid)
                 .id(UUID.randomUUID().toString())
-                .claim("name", name)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date((System.currentTimeMillis() + accessExpiration)))
@@ -80,7 +79,6 @@ public class JwtTokenProvider {
 
         return JwtClaims.builder()
                 .uuid(UUID.fromString(payload.getSubject()))
-                .name(payload.get("name", String.class))
                 .role(payload.get("role", String.class))
                 .jti(jti)
                 .build();
@@ -135,14 +133,14 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public void reissueAccessToken(HttpServletRequest request, HttpServletResponse response, String name, String role) throws IOException, ServletException {
+    public void reissueAccessToken(HttpServletRequest request, HttpServletResponse response, String role) throws IOException, ServletException {
 
         String refreshToken = getRefreshToken(request);
 
         try {
             JwtClaims jwtClaims = validateRefreshToken(request, response, refreshToken);
             if (jwtClaims == null) return ;
-            String accessToken = createAccessToken(String.valueOf(jwtClaims.getUuid()), name, role);
+            String accessToken = createAccessToken(String.valueOf(jwtClaims.getUuid()), role);
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json; charset=UTF-8");

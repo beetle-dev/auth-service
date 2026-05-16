@@ -5,7 +5,7 @@ import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.common.response.PageResponse;
 import com.cafe.authservice.domain.Role;
 import com.cafe.authservice.domain.Users;
-import com.cafe.authservice.dto.UserReqDto;
+import com.cafe.authservice.dto.UserCreateReqDto;
 import com.cafe.authservice.dto.UserResDto;
 import com.cafe.authservice.dto.UsersSearchDto;
 import com.cafe.authservice.repository.UsersRepository;
@@ -31,7 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void register(UserReqDto newUser) {
+    public void register(UserCreateReqDto newUser) {
 
         usersRepository.findByEmail(newUser.getEmail())
                 .ifPresent(users -> {
@@ -62,17 +62,14 @@ public class AuthService {
     }
 
     @Transactional
-    public void modifyUser(UUID uuid, UserReqDto reqDto, String requesterId, String requesterRole) {
+    public void modifyUser(UUID uuid, UserCreateReqDto reqDto, String requesterId, String requesterRole) {
 
-        if (requesterRole != Role.ADMIN.toString() && requesterId.equals(uuid)){ // todo 로직 확인
+        if (requesterRole != Role.ADMIN.toString() && !requesterId.equals(uuid)){ // todo 로직 확인
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
         Users users = usersRepository.findByUuid(uuid)
                 .orElseThrow(() -> new CustomException(NOT_FOUND));
-
-        usersRepository.findByEmail(reqDto.getEmail())
-                        .ifPresent(users1 -> {throw new CustomException(DUPLICATE_EMAIL);});
 
         users.modified(reqDto, passwordEncoder);
     }

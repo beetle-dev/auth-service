@@ -2,11 +2,10 @@ package com.cafe.authservice.controller;
 
 import com.cafe.authservice.common.response.CommonResponse;
 import com.cafe.authservice.domain.Users;
-import com.cafe.authservice.dto.UserReqDto;
+import com.cafe.authservice.dto.UserCreateReqDto;
 import com.cafe.authservice.dto.UserResDto;
 import com.cafe.authservice.dto.UsersSearchDto;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
-import com.cafe.authservice.security.userdetails.CustomUserDetails;
 import com.cafe.authservice.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -39,8 +36,8 @@ public class AuthController {
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")    // todo msa 구조에서 되나?
+                .secure(false) // todo 운영에서 true로 변경 필요
+                .sameSite("none")
                 .maxAge(0)
                 .path("/")
                 .build();
@@ -63,7 +60,7 @@ public class AuthController {
     }
 
     @PostMapping("/user")
-    public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserReqDto newUser) { // todo 클라이언트로부터 받을 수 잇는 형태는?
+    public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserCreateReqDto newUser) { // todo 클라이언트로부터 받을 수 잇는 형태는?
 
         authService.register(newUser);
 
@@ -76,9 +73,10 @@ public class AuthController {
         return ResponseEntity.ok(CommonResponse.ok(authService.getUsers(reqDto)));
     }
 
-    @PatchMapping("/users/{uuid}")
+    @PatchMapping(
+            "/users/{uuid}")
     public ResponseEntity<CommonResponse<?>> modifyUser(@PathVariable("uuid") UUID uuid,
-                                                        @Valid @RequestBody UserReqDto reqDto,
+                                                        @Valid @RequestBody UserCreateReqDto reqDto,
                                                         @RequestHeader("X-User-Id") String requesterId,
                                                         @RequestHeader("X-User-Role") String requesterRole) {
 
@@ -89,10 +87,11 @@ public class AuthController {
 
     @PostMapping("/auth/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request,
-                                     HttpServletResponse response) throws Exception { // todo 주석 정리
+                                     HttpServletResponse response,
+                                     @RequestHeader("X-User-Role") String requesterRole) throws Exception { // todo 주석 정리
         // refreshToken 쿠키 검증 → DB에서 uuid로 name/role 조회 → 새 access token 발급
         // JwtTokenProvider.reissueAccessToken 로직 활용 또는 분리
-        jwtTokenProvider.reissueAccessToken(request, response, null, null);
+        jwtTokenProvider.reissueAccessToken(request, response, requesterRole);
         return null; // response에 직접 write
     }
 }
