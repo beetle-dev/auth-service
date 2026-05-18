@@ -1,8 +1,11 @@
 package com.cafe.authservice.controller;
 
+import com.cafe.authservice.common.exception.CustomException;
 import com.cafe.authservice.common.response.CommonResponse;
+import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.domain.Users;
 import com.cafe.authservice.dto.UserCreateReqDto;
+import com.cafe.authservice.dto.UserModifyReqDto;
 import com.cafe.authservice.dto.UserResDto;
 import com.cafe.authservice.dto.UsersSearchDto;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -31,6 +35,11 @@ public class AuthController {
                                                     HttpServletResponse response) {
 
         String authorization = request.getHeader("Authorization");
+
+        if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
+            throw new CustomException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
+
         String accessToken = authorization.split(" ")[1];
         String uuid = jwtTokenProvider.blacklistAccessToken(accessToken);
 
@@ -53,10 +62,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<CommonResponse<?>> getUserInfo(@RequestHeader("X-User-Id") String uuid) {
-
-        Users user = authService.getUserInfo(UUID.fromString(uuid));
-
-        return ResponseEntity.ok(CommonResponse.ok(UserResDto.from(user)));
+        return ResponseEntity.ok(CommonResponse.ok(authService.getUserInfo(UUID.fromString(uuid))));
     }
 
     @PostMapping("/user")
@@ -76,7 +82,7 @@ public class AuthController {
     @PatchMapping(
             "/users/{uuid}")
     public ResponseEntity<CommonResponse<?>> modifyUser(@PathVariable("uuid") UUID uuid,
-                                                        @Valid @RequestBody UserCreateReqDto reqDto,
+                                                        @Valid @RequestBody UserModifyReqDto reqDto,
                                                         @RequestHeader("X-User-Id") String requesterId,
                                                         @RequestHeader("X-User-Role") String requesterRole) {
 
@@ -85,13 +91,11 @@ public class AuthController {
         return ResponseEntity.ok(CommonResponse.ok());
     }
 
-    @PostMapping("/auth/reissue")
-    public ResponseEntity<?> reissue(HttpServletRequest request,
+    @PostMapping("/reissue")
+    public ResponseEntity<CommonResponse<?>> reissue(HttpServletRequest request,
                                      HttpServletResponse response,
                                      @RequestHeader("X-User-Role") String requesterRole) throws Exception { // todo 주석 정리
-        // refreshToken 쿠키 검증 → DB에서 uuid로 name/role 조회 → 새 access token 발급
-        // JwtTokenProvider.reissueAccessToken 로직 활용 또는 분리
         jwtTokenProvider.reissueAccessToken(request, response, requesterRole);
-        return null; // response에 직접 write
+        return ResponseEntity.ok(CommonResponse.ok());
     }
 }

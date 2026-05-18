@@ -3,10 +3,10 @@ package com.cafe.authservice.security.config;
 import com.cafe.authservice.common.exception.CustomAuthenticationFailureHandler;
 import com.cafe.authservice.common.response.CommonResponse;
 import com.cafe.authservice.common.response.ErrorCode;
-import com.cafe.authservice.repository.UsersRepository;
 import com.cafe.authservice.security.filter.GatewayAuthFilter;
 import com.cafe.authservice.security.filter.LoginFilter;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
+import com.cafe.authservice.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +18,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -35,12 +33,12 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
     private final AuthenticationConfiguration authenticationConfiguration;
-    private final UsersRepository usersRepository;
+    private final AuthService authService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        LoginFilter loginFilter = new LoginFilter(refreshExpiration, jwtTokenProvider, objectMapper, usersRepository);
+        LoginFilter loginFilter = new LoginFilter(refreshExpiration, jwtTokenProvider, objectMapper, authService);
         loginFilter.setAuthenticationManager(authenticationManager());
         loginFilter.setAuthenticationFailureHandler(customAuthenticationFailureHandler);
         // todo auth 검증 제외 >> api-gateway로 이관?
@@ -74,8 +72,4 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }

@@ -6,6 +6,7 @@ import com.cafe.authservice.common.response.PageResponse;
 import com.cafe.authservice.domain.Role;
 import com.cafe.authservice.domain.Users;
 import com.cafe.authservice.dto.UserCreateReqDto;
+import com.cafe.authservice.dto.UserModifyReqDto;
 import com.cafe.authservice.dto.UserResDto;
 import com.cafe.authservice.dto.UsersSearchDto;
 import com.cafe.authservice.repository.UsersRepository;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.cafe.authservice.common.response.ErrorCode.*;
@@ -47,6 +49,7 @@ public class AuthService {
         usersRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
     public PageResponse<UserResDto> getUsers(UsersSearchDto reqDto) {
 
         Sort sort = Sort.by(
@@ -62,21 +65,27 @@ public class AuthService {
     }
 
     @Transactional
-    public void modifyUser(UUID uuid, UserCreateReqDto reqDto, String requesterId, String requesterRole) {
+    public void modifyUser(UUID uuid, UserModifyReqDto reqDto, String requesterId, String requesterRole) {
 
-        if (requesterRole != Role.ADMIN.toString() && !requesterId.equals(uuid)){ // todo 로직 확인
+        if (!Objects.equals(requesterRole, Role.ADMIN.toString()) && !requesterId.equals(uuid)){
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
         Users users = usersRepository.findByUuid(uuid)
                 .orElseThrow(() -> new CustomException(NOT_FOUND));
 
-        users.modified(reqDto, passwordEncoder);
+        users.modified(reqDto, passwordEncoder.encode(reqDto.getPassword()));
     }
 
-    public Users getUserInfo(UUID uuid) {
+    @Transactional(readOnly = true)
+    public UserResDto getUserInfo(UUID uuid) {
+        return UserResDto.from(usersRepository.findByUuid(uuid)
+                .orElseThrow(() -> new CustomException(NOT_FOUND)));
+    }
 
-        return usersRepository.findByUuid(uuid)
-                .orElseThrow(() -> new CustomException(NOT_FOUND));
+    @Transactional
+    public void updateLastLogin(UUID uuid) {
+        usersRepository.findByUuid(uuid)
+                .ifPresent(Users::updateLastLoginAt);
     }
 }

@@ -6,6 +6,7 @@ import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.repository.UsersRepository;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
 import com.cafe.authservice.security.userdetails.CustomUserDetails;
+import com.cafe.authservice.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,7 +30,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final Long refreshExpiration;
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
-    private final UsersRepository usersRepository;
+    private final AuthService authService;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -47,11 +48,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
 
-        usersRepository.findByUuid(userDetails.getUuid())
-                .ifPresent(user -> {
-                    user.updateLastLoginAt();
-                    usersRepository.save(user);
-                });
+        authService.updateLastLogin(userDetails.getUuid());
 
         String uuid = String.valueOf(userDetails.getUuid());
         String role = userDetails.getAuthorities()

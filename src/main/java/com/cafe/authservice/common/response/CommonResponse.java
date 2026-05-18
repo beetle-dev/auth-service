@@ -35,6 +35,6 @@ public class CommonResponse<T> {
     }
 
     public static <T> CommonResponse<String> reissueAccessToken(String accessToken) {
-        return new CommonResponse<>("REISSUE_ACCESS_TOJKEN",null, accessToken);
+        return new CommonResponse<>("REISSUE_ACCESS_TOKEN",null, accessToken);
     }
 }

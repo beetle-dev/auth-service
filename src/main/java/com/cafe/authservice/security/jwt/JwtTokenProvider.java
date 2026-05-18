@@ -67,23 +67,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public JwtClaims validateAccessToken(String accessToken) {
-
-        var payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload();
-
-        String jti = payload.getId();
-
-        if (blacklistedTokenRepository.existsById(jti)) {
-            throw new CustomException(ErrorCode.AUTH_TOKEN_INVALID);
-        }
-
-        return JwtClaims.builder()
-                .uuid(UUID.fromString(payload.getSubject()))
-                .role(payload.get("role", String.class))
-                .jti(jti)
-                .build();
-    }
-
     public String blacklistAccessToken(String accessToken) {
 
         var payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload();
@@ -122,7 +105,7 @@ public class JwtTokenProvider {
 
         String jti = UUID.randomUUID().toString();
 
-        refreshTokenRepository.save(new RefreshToken(uuid, jti));
+        refreshTokenRepository.save(new RefreshToken(uuid, jti, refreshExpiration));
 
         return Jwts.builder()
                 .subject(uuid)

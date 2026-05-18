@@ -1,6 +1,7 @@
 package com.cafe.authservice.domain;
 
 import com.cafe.authservice.dto.UserCreateReqDto;
+import com.cafe.authservice.dto.UserModifyReqDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,8 +53,8 @@ public class Users extends BaseEntity {
         this.isActive = true;
     }
 
-    public void modified(UserCreateReqDto reqDto, PasswordEncoder passwordEncoder) {
-        if (StringUtils.hasText(reqDto.getPassword())) this.password = passwordEncoder.encode(reqDto.getPassword());
+    public void modified(UserModifyReqDto reqDto, String password) {
+        if (StringUtils.hasText(reqDto.getPassword())) this.password = password;
         if (StringUtils.hasText(reqDto.getName())) this.name = reqDto.getName();
     }
 }
