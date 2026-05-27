@@ -39,7 +39,7 @@ public class JwtTokenProvider {
     private final ObjectMapper objectMapper;
     private final CustomAuthenticationFailureHandler failureHandler;
 
-    public JwtTokenProvider(@Value("${spring.jwt.secretkey}") String secretKey,
+    public JwtTokenProvider(@Value("${spring.jwt.secret}") String secretKey,
                             @Value("${spring.jwt.access_expiration}") Long accessExpiration,
                             @Value("${spring.jwt.refresh_expiration}") Long refreshExpiration,
                             RefreshTokenRepository refreshTokenRepository,

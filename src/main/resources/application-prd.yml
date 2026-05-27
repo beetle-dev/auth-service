@@ -1,18 +1,38 @@
 spring:
+  config:
+    import:
+      - "aws-secretsmanager:cafe/api-gateway"
+      - "rds!cluster-cb0cfbce-010d-4b94-98dc-9bfc73234f43"
+
+
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc :postgresql://localhost:5432/cafe
-    username: admin
-    password: password
+    url: ${DB_URL}
+    username: ${username}
+    password: ${password}
 
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: password
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: true
 
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: false
-    open-in-view: false         
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  jwt:
+    secret: ${JWT_SECRET}
+    access_expiration: 3600000 #1hour
+    refresh_expiration: 2592000000 #30days
+
+gateway:
+  secret: ${GATEWAY_SECRET}
