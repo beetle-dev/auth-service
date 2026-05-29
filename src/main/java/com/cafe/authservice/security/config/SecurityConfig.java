@@ -41,7 +41,7 @@ public class SecurityConfig {
         LoginFilter loginFilter = new LoginFilter(refreshExpiration, jwtTokenProvider, objectMapper, authService);
         loginFilter.setAuthenticationManager(authenticationManager());
         loginFilter.setAuthenticationFailureHandler(customAuthenticationFailureHandler);
-        // todo auth 검증 제외 >> api-gateway로 이관?
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)

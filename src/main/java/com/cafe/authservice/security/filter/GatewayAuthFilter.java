@@ -22,6 +22,13 @@ public class GatewayAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        if (request.getRequestURI().startsWith("/actuator/health")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
         String incomingSecret = request.getHeader(GATEWAY_SECRET_HEADER);
 
         if (!gatewaySecret.equals(incomingSecret)) {
