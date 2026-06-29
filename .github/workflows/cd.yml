@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: prd
     permissions:
-      id-token: write   
+      id-token: write
       contents: read
 
     steps:
@@ -23,8 +23,8 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-          
-      - name: Run tests      
+
+      - name: Run tests
         run: ./gradlew test
 
       - name: Build JAR
@@ -48,29 +48,25 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-        id: build-image
 
-      - name: Download ECS task definition
-        env:
-          TASK: ${{ vars.ECR_TASK }}
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition $TASK \
-            --query taskDefinition > task-def.json
-
-      - name: Update ECS task definition with new image
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          task-definition: task-def.json
-          container-name: ${{ vars.CONTAINER_NAME }}
-          image: ${{ steps.build-image.outputs.image }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ec2-user/cafe-admin
 
-      - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ vars.ECS_SERVICE }}
-          cluster: ${{ vars.ECS_CLUSTER }}
-          wait-for-service-stability: true
+            # ECR 로그인
+            aws ecr get-login-password --region ${{ vars.AWS_REGION }} | \
+              docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+            # 새 이미지 pull 후 latest 태그로 재태깅
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
+            docker tag \
+              ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }} \
+              ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:latest
+
+            # auth-service만 재시작
+            docker-compose up -d --no-deps auth-service

@@ -1,24 +1,20 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
-  config:
-    import:
-      - "aws-secretsmanager:prd/cafe"
-      - "aws-secretsmanager:rds!cluster-cb0cfbce-010d-4b94-98dc-9bfc73234f43"
 
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${DB_URL}
-    username: ${username}
-    password: ${password}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   data:
     redis:
       host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      port: ${REDIS_PORT:6379}
       ssl:
-        enabled: true
+        enabled: false
 
   jpa:
     hibernate:
@@ -30,6 +26,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+
   jwt:
     secret: ${JWT_SECRET}
     access_expiration: 3600000 #1hour
@@ -38,9 +39,14 @@ spring:
 gateway:
   secret: ${GATEWAY_SECRET}
 
+simulation:
+  enabled: true
+  orders-per-store-min: 15
+  orders-per-store-max: 40
+
 logging:
   level:
-    root: INFO                          # 전체 기본
-    org.springframework.web: DEBUG      # 웹 요청/응답
-    org.springframework.web.servlet.DispatcherServlet: DEBUG  # 요청 라우팅
-    com.zaxxer.hikari: DEBUG   # DB 커넥션 풀 (DB 연결 실패 확인용)
+    root: INFO
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    com.zaxxer.hikari: DEBUG

@@ -1,5 +1,6 @@
 package com.cafe.authservice.dto;
 
+import com.cafe.authservice.domain.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -19,4 +20,6 @@ public class UserCreateReqDto {
 
     @NotEmpty
     private String name;
+
+    private Role role;
 }
