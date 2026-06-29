@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 public class UserResDto {
 
     private Long id;
+    private UUID uuid;
     private String email;
     private String name;
     private Role role;
@@ -24,6 +26,7 @@ public class UserResDto {
 
         return UserResDto.builder()
                 .id(user.getId())
+                .uuid(user.getUuid())
                 .email(user.getEmail())
                 .name(user.getName())
                 .role(user.getRole())
