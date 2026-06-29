@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -75,7 +76,13 @@ public class AuthService {
         Users users = usersRepository.findByUuid(uuid)
                 .orElseThrow(() -> new CustomException(NOT_FOUND));
 
-        users.modified(reqDto, passwordEncoder.encode(reqDto.getPassword()));
+        String encodedPassword = null;
+
+        if (StringUtils.hasText(reqDto.getPassword())) {
+          encodedPassword = passwordEncoder.encode(reqDto.getPassword());
+        }
+
+        users.modified(reqDto, encodedPassword);
     }
 
     @Transactional(readOnly = true)
