@@ -1,5 +1,6 @@
 package com.cafe.authservice.dto;
 
+import com.cafe.authservice.domain.Role;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -12,4 +13,6 @@ public class UserModifyReqDto {
     private String password;
 
     private String name;
+
+    private Role role;
 }

@@ -56,5 +56,6 @@ public class Users extends BaseEntity {
     public void modified(UserModifyReqDto reqDto, String password) {
         if (StringUtils.hasText(reqDto.getPassword())) this.password = password;
         if (StringUtils.hasText(reqDto.getName())) this.name = reqDto.getName();
+        if (reqDto.getRole() != null) this.role = reqDto.getRole();
     }
 }
