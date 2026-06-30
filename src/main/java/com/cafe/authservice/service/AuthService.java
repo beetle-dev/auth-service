@@ -106,4 +106,23 @@ public class AuthService {
         usersRepository.findByUuid(uuid)
                 .ifPresent(Users::updateLastLoginAt);
     }
+
+    @Transactional
+    public void signup(UserCreateReqDto newUser) {
+
+        usersRepository.findByEmail(newUser.getEmail())
+                .ifPresent(users -> {
+                    throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+                });
+
+        Users user = Users.builder()
+                .email(newUser.getEmail())
+                .password(passwordEncoder.encode(newUser.getPassword()))
+                .name(newUser.getName())
+                .role(Role.PENDING)
+                .isActive(true)
+                .build();
+
+        usersRepository.save(user);
+    }
 }

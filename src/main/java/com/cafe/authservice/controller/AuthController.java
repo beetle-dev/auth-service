@@ -65,6 +65,14 @@ public class AuthController {
         return ResponseEntity.ok(CommonResponse.ok(authService.getUserInfo(UUID.fromString(uuid))));
     }
 
+    @PostMapping("/signup")
+    public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserCreateReqDto newUser) {
+
+        authService.signup(newUser);
+
+        return ResponseEntity.ok(CommonResponse.ok());
+    }
+
     @PostMapping("/user")
     public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserCreateReqDto newUser,
                                                       @RequestHeader("X-User-Role") String requesterRole) { // todo 클라이언트로부터 받을 수 잇는 형태는?
