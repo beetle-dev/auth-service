@@ -34,7 +34,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void register(UserCreateReqDto newUser) {
+    public void register(UserCreateReqDto newUser, String requesterRole) {
+
+        if (!(requesterRole.equals(Role.ADMIN.toString()) || requesterRole.equals(Role.MANAGER.toString()))) {
+            throw new CustomException(AUTH_ACCESS_DENIED);
+        }
 
         usersRepository.findByEmail(newUser.getEmail())
                 .ifPresent(users -> {
@@ -46,6 +50,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(newUser.getPassword()))
                 .name(newUser.getName())
                 .role(newUser.getRole())
+                .isActive(newUser.getIsActive())
                 .build();
 
         usersRepository.save(user);
@@ -67,14 +72,19 @@ public class AuthService {
     }
 
     @Transactional
-    public void modifyUser(UUID uuid, UserModifyReqDto reqDto, String requesterId, String requesterRole) {
+    public void modifyUser(UUID uuid, UserModifyReqDto reqDto, String requesterRole) {
 
-        if (!Objects.equals(requesterRole, Role.ADMIN.toString()) && !requesterId.equals(uuid)){
+        if (!(requesterRole.equals(Role.ADMIN.toString()) || requesterRole.equals(Role.MANAGER.toString()))) {
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
         Users users = usersRepository.findByUuid(uuid)
                 .orElseThrow(() -> new CustomException(NOT_FOUND));
+
+        if ((!requesterRole.equals(Role.ADMIN.toString()) && reqDto.getRole() == Role.ADMIN)
+        || (!requesterRole.equals(Role.ADMIN.toString()) && users.getRole() == Role.ADMIN)) {
+            throw new CustomException(AUTH_ACCESS_DENIED);
+        }
 
         String encodedPassword = null;
 

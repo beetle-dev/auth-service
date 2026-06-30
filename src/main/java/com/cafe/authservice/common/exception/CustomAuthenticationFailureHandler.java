@@ -26,15 +26,17 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
 
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType("application/json; charset=UTF-8");
-
         ErrorCode errorCode;
         if (exception instanceof JwtAuthenticationException) {
             errorCode = ErrorCode.AUTH_TOKEN_INVALID;
+        } else if (exception.getCause() instanceof CustomException customException) {
+            errorCode = customException.getErrorCode();
         } else {
             errorCode = ErrorCode.AUTH_INVALID_CREDENTIALS;
         }
+
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType("application/json; charset=UTF-8");
 
         objectMapper.writeValue(response.getWriter(), CommonResponse.fail(errorCode));
     }

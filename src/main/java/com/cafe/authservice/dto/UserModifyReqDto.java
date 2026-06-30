@@ -13,6 +13,6 @@ public class UserModifyReqDto {
     private String password;
 
     private String name;
-
     private Role role;
+    private Boolean isActive;
 }

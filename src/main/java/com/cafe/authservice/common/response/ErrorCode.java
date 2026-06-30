@@ -13,7 +13,8 @@ public enum ErrorCode {
     DUPLICATE_EMAIL   ("A004", "중복된 이메일 입니다.",         HttpStatus.CONFLICT),
     NOT_FOUND         ("A005", "해당 정보가 없습니다.",         HttpStatus.NOT_FOUND),
     VALIDATION_FAILED ("A006", "입력값이 유효하지 않습니다.",    HttpStatus.BAD_REQUEST),
-    AUTH_INVALID_CREDENTIALS("A007", "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED);
+    AUTH_INVALID_CREDENTIALS("A007", "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
+    DISABLE_ACCOUNT("A008", "비활성화된 계정입니다.", HttpStatus.FORBIDDEN);
 
     private final String code;
     private final String message;

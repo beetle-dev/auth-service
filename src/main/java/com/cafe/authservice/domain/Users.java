@@ -57,5 +57,6 @@ public class Users extends BaseEntity {
         if (StringUtils.hasText(reqDto.getPassword())) this.password = password;
         if (StringUtils.hasText(reqDto.getName())) this.name = reqDto.getName();
         if (reqDto.getRole() != null) this.role = reqDto.getRole();
+        this.isActive = reqDto.getIsActive();
     }
 }

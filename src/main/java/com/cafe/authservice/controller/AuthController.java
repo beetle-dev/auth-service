@@ -66,9 +66,10 @@ public class AuthController {
     }
 
     @PostMapping("/user")
-    public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserCreateReqDto newUser) { // todo 클라이언트로부터 받을 수 잇는 형태는?
+    public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserCreateReqDto newUser,
+                                                      @RequestHeader("X-User-Role") String requesterRole) { // todo 클라이언트로부터 받을 수 잇는 형태는?
 
-        authService.register(newUser);
+        authService.register(newUser, requesterRole);
 
         return ResponseEntity.ok(CommonResponse.ok());
     }
@@ -83,10 +84,9 @@ public class AuthController {
             "/users/{uuid}")
     public ResponseEntity<CommonResponse<?>> modifyUser(@PathVariable("uuid") UUID uuid,
                                                         @Valid @RequestBody UserModifyReqDto reqDto,
-                                                        @RequestHeader("X-User-Id") String requesterId,
                                                         @RequestHeader("X-User-Role") String requesterRole) {
 
-        authService.modifyUser(uuid, reqDto, requesterId, requesterRole);
+        authService.modifyUser(uuid, reqDto, requesterRole);
 
         return ResponseEntity.ok(CommonResponse.ok());
     }

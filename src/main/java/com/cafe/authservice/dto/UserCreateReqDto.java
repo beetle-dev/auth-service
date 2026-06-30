@@ -22,4 +22,5 @@ public class UserCreateReqDto {
     private String name;
 
     private Role role;
+    private Boolean isActive;
 }
