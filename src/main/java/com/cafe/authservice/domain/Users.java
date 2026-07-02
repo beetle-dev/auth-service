@@ -1,10 +1,8 @@
 package com.cafe.authservice.domain;
 
-import com.cafe.authservice.dto.UserCreateReqDto;
 import com.cafe.authservice.dto.UserModifyReqDto;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -57,6 +55,6 @@ public class Users extends BaseEntity {
         if (StringUtils.hasText(reqDto.getPassword())) this.password = password;
         if (StringUtils.hasText(reqDto.getName())) this.name = reqDto.getName();
         if (reqDto.getRole() != null) this.role = reqDto.getRole();
-        this.isActive = reqDto.getIsActive();
+        if (reqDto.getIsActive() != null ) this.isActive = reqDto.getIsActive();
     }
 }

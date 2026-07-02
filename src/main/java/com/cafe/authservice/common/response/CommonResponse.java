@@ -34,7 +34,7 @@ public class CommonResponse<T> {
         return new CommonResponse<>(errorCode.getCode(), errorCode.getMessage(), null);
     }
 
-    public static <T> CommonResponse<String> reissueAccessToken(String accessToken) {
+    public static CommonResponse<String> reissueAccessToken(String accessToken) {
         return new CommonResponse<>("REISSUE_ACCESS_TOKEN",null, accessToken);
     }
 }

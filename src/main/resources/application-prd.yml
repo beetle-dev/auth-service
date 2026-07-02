@@ -19,7 +19,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -39,14 +39,8 @@ spring:
 gateway:
   secret: ${GATEWAY_SECRET}
 
-simulation:
-  enabled: true
-  orders-per-store-min: 15
-  orders-per-store-max: 40
-
 logging:
   level:
     root: INFO
-    org.springframework.web: DEBUG
-    org.springframework.web.servlet.DispatcherServlet: DEBUG
-    com.zaxxer.hikari: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: WARN
+    com.zaxxer.hikari: INFO

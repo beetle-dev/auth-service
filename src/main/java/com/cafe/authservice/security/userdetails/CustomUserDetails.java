@@ -15,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private final Users user; // todo final 인 이유?
+    private final Users user;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

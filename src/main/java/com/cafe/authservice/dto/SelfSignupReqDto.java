@@ -1,6 +1,5 @@
 package com.cafe.authservice.dto;
 
-import com.cafe.authservice.domain.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -8,9 +7,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
-public class UserCreateReqDto {
-
-    @NotEmpty @Email
+public class SelfSignupReqDto {
+    @NotEmpty
+    @Email
     private String email;
 
     @NotEmpty
@@ -20,7 +19,4 @@ public class UserCreateReqDto {
 
     @NotEmpty
     private String name;
-
-    private Role role;
-    private Boolean isActive;
 }

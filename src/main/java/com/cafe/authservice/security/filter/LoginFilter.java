@@ -62,7 +62,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(false) // todo 운영환경 true로 변경 필요
+                .secure(true)
                 .sameSite("None")
                 .maxAge(refreshExpiration / 1000)
                 .path("/")

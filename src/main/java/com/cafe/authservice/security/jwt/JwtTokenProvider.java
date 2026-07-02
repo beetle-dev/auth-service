@@ -10,6 +10,7 @@ import com.cafe.authservice.security.token.BlacklistedTokenRepository;
 import com.cafe.authservice.security.token.RefreshToken;
 import com.cafe.authservice.security.token.RefreshTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.ServletException;
@@ -69,7 +70,13 @@ public class JwtTokenProvider {
 
     public String blacklistAccessToken(String accessToken) {
 
-        var payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload();
+        Claims payload;
+
+        try {
+            payload = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload();
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        }
 
         long ttlSeconds = (payload.getExpiration().getTime() - System.currentTimeMillis()) / 1000;
 

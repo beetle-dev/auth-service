@@ -3,10 +3,9 @@ package com.cafe.authservice.controller;
 import com.cafe.authservice.common.exception.CustomException;
 import com.cafe.authservice.common.response.CommonResponse;
 import com.cafe.authservice.common.response.ErrorCode;
-import com.cafe.authservice.domain.Users;
-import com.cafe.authservice.dto.UserCreateReqDto;
+import com.cafe.authservice.dto.SelfSignupReqDto;
+import com.cafe.authservice.dto.AdminCreateUserReqDto;
 import com.cafe.authservice.dto.UserModifyReqDto;
-import com.cafe.authservice.dto.UserResDto;
 import com.cafe.authservice.dto.UsersSearchDto;
 import com.cafe.authservice.security.jwt.JwtTokenProvider;
 import com.cafe.authservice.service.AuthService;
@@ -40,12 +39,12 @@ public class AuthController {
             throw new CustomException(ErrorCode.AUTH_TOKEN_INVALID);
         }
 
-        String accessToken = authorization.split(" ")[1];
+        String accessToken = authorization.substring(7);
         String uuid = jwtTokenProvider.blacklistAccessToken(accessToken);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(false) // todo 운영에서 true로 변경 필요
+                .secure(true)
                 .sameSite("none")
                 .maxAge(0)
                 .path("/")
@@ -66,7 +65,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserCreateReqDto newUser) {
+    public ResponseEntity<CommonResponse<?>> signup(@Valid @RequestBody SelfSignupReqDto newUser) {
 
         authService.signup(newUser);
 
@@ -74,8 +73,8 @@ public class AuthController {
     }
 
     @PostMapping("/user")
-    public ResponseEntity<CommonResponse<?>> register(@Valid @RequestBody UserCreateReqDto newUser,
-                                                      @RequestHeader("X-User-Role") String requesterRole) { // todo 클라이언트로부터 받을 수 잇는 형태는?
+    public ResponseEntity<CommonResponse<?>> createByAdmin(@Valid @RequestBody AdminCreateUserReqDto newUser,
+                                                      @RequestHeader("X-User-Role") String requesterRole) {
 
         authService.register(newUser, requesterRole);
 
@@ -102,7 +101,7 @@ public class AuthController {
     @PostMapping("/reissue")
     public ResponseEntity<CommonResponse<?>> reissue(HttpServletRequest request,
                                      HttpServletResponse response,
-                                     @RequestHeader("X-User-Role") String requesterRole) throws Exception { // todo 주석 정리
+                                     @RequestHeader("X-User-Role") String requesterRole) throws Exception {
         jwtTokenProvider.reissueAccessToken(request, response, requesterRole);
         return ResponseEntity.ok(CommonResponse.ok());
     }

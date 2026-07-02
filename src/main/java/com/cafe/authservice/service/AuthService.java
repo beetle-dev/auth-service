@@ -5,10 +5,7 @@ import com.cafe.authservice.common.response.ErrorCode;
 import com.cafe.authservice.common.response.PageResponse;
 import com.cafe.authservice.domain.Role;
 import com.cafe.authservice.domain.Users;
-import com.cafe.authservice.dto.UserCreateReqDto;
-import com.cafe.authservice.dto.UserModifyReqDto;
-import com.cafe.authservice.dto.UserResDto;
-import com.cafe.authservice.dto.UsersSearchDto;
+import com.cafe.authservice.dto.*;
 import com.cafe.authservice.repository.UsersRepository;
 import com.cafe.authservice.repository.UsersSpecification;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Objects;
 import java.util.UUID;
 
 import static com.cafe.authservice.common.response.ErrorCode.*;
@@ -34,9 +30,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void register(UserCreateReqDto newUser, String requesterRole) {
+    public void register(AdminCreateUserReqDto newUser, String requesterRole) {
 
-        if (!(requesterRole.equals(Role.ADMIN.toString()) || requesterRole.equals(Role.MANAGER.toString()))) {
+        if (Role.valueOf(requesterRole) != Role.ADMIN && Role.valueOf(requesterRole) != Role.MANAGER) {
+            throw new CustomException(AUTH_ACCESS_DENIED);
+        }
+
+        if (Role.valueOf(requesterRole) != Role.ADMIN && newUser.getRole() == Role.ADMIN) {
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
@@ -74,15 +74,15 @@ public class AuthService {
     @Transactional
     public void modifyUser(UUID uuid, UserModifyReqDto reqDto, String requesterRole) {
 
-        if (!(requesterRole.equals(Role.ADMIN.toString()) || requesterRole.equals(Role.MANAGER.toString()))) {
+        if (Role.valueOf(requesterRole) != Role.ADMIN || Role.valueOf(requesterRole) != Role.MANAGER) {
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
         Users users = usersRepository.findByUuid(uuid)
                 .orElseThrow(() -> new CustomException(NOT_FOUND));
 
-        if ((!requesterRole.equals(Role.ADMIN.toString()) && reqDto.getRole() == Role.ADMIN)
-        || (!requesterRole.equals(Role.ADMIN.toString()) && users.getRole() == Role.ADMIN)) {
+        if (Role.valueOf(requesterRole) != Role.ADMIN &&
+                ( reqDto.getRole() == Role.ADMIN || users.getRole() == Role.ADMIN)) {
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
@@ -108,7 +108,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void signup(UserCreateReqDto newUser) {
+    public void signup(SelfSignupReqDto newUser) {
 
         usersRepository.findByEmail(newUser.getEmail())
                 .ifPresent(users -> {

@@ -207,3 +207,6 @@ gradle-app.setting
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,gradle,java
 /.claude/
+
+# Local-only config with dev secrets - never commit
+src/main/resources/application-local.yml
