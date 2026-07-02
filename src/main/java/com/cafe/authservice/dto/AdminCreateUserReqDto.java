@@ -20,7 +20,4 @@ public class AdminCreateUserReqDto {
 
     @NotNull
     private Role role;
-
-    @NotNull
-    private Boolean isActive;
 }

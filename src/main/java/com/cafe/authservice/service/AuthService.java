@@ -50,7 +50,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(newUser.getPassword()))
                 .name(newUser.getName())
                 .role(newUser.getRole())
-                .isActive(newUser.getIsActive())
+                .isActive(true)
                 .build();
 
         usersRepository.save(user);
@@ -74,7 +74,7 @@ public class AuthService {
     @Transactional
     public void modifyUser(UUID uuid, UserModifyReqDto reqDto, String requesterRole) {
 
-        if (Role.valueOf(requesterRole) != Role.ADMIN || Role.valueOf(requesterRole) != Role.MANAGER) {
+        if (Role.valueOf(requesterRole) != Role.ADMIN && Role.valueOf(requesterRole) != Role.MANAGER) {
             throw new CustomException(AUTH_ACCESS_DENIED);
         }
 
